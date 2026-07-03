@@ -225,8 +225,14 @@ function update() {
 }  
 
 // Drawing functions
+ctx.textAlign = "center";
+ctx.textBaseline = "middle"; //aligning text to the centre of the button
+
 function drawButton(button) {
-    if (selection === button.selectionID) {
+
+    const selectedButton = selectionOptions[gameState][selection];
+
+    if (selectedButton === button) {
         ctx.fillStyle = "white";
     } 
     else {
@@ -235,13 +241,13 @@ function drawButton(button) {
     ctx.fillRect(button.x, button.y, button.width, button.height);
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
-    ctx.fillText(button.text, button.x, button.y);
+    ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
 }
 
 function drawTitleScreen() {
     ctx.fillStyle = "white";
     ctx.font = "40px Arial";
-    ctx.fillText("Celestial Pong", 450, 200);
+    ctx.fillText("Celestial Pong", canvas.width / 2, 200);
     drawButton(startButton);
 }
 
@@ -307,13 +313,6 @@ let selection = 0;
 //----------------------------------------------------------------------------------
 
 // Making buttons work
-document.addEventListener("keydown", function(event) {;
-
-    changeSelection(event);
-    selectOption(event);
-
-});
-
 function changeSelection(event) {
 
     if (gameState === "playing") {
@@ -341,32 +340,27 @@ function changeSelection(event) {
 function selectOption(event) {
 
     if (event.key === "Enter") {
-        if (gameState === "title") {
-            if (selection === 0) {
-                startGame();
-            }
-        }
-        else if (gameState === "instructions") {
-            if (selection === 0) {
-                startElasticGame();
-            }
-            else if (selection === 1) {
-                startVoidGame();
-            }
-        }
-        else if (gameState === "gameOver") {
-            if (selection === 0) {
-                restartGame();
-            }
+        
+        if (gameState === "playing") {
+            return; // Ignore selection during gameplay
         }
         else {
-            return; // Ignore selection during gameplay
+            const selectedButton = selectionOptions[gameState][selection];
+            selectedButton.action(); // Call the action associated with the selected button
         }
     }
     else {
         return; // Ignore other keys
     }
+
 }
+
+document.addEventListener("keydown", function(event) {;
+
+    changeSelection(event);
+    selectOption(event);
+
+});
 
 //----------------------------------------------------------------------------------
 
