@@ -231,18 +231,11 @@ function restartGame() {
 }
 
 // Physics functions
-function findDistance(body1,body2) {
+function gravityAccn(body1, body2) {
 
     const dx = body2.x - body1.x;
     const dy = body2.y - body1.y;
     const distance = Math.sqrt(dx*dx + dy*dy);
-
-    return dx, dy, distance;
-}
-
-function gravityAccn(body1, body2) {
-
-    dx,dy,distance = findDistance(body1,body2);
 
     if (distance < 1) {
         return; // Avoid division by zero
@@ -262,7 +255,11 @@ function gravityAccn(body1, body2) {
 
 function isColliding() {
 
-    dx,dy,distance = findDistance(body1,body2);
+    // Body-body collisions
+    const dx = body2.x - body1.x;
+    const dy = body2.y - body1.y;
+    const distance = Math.sqrt(dx*dx + dy*dy);
+
 
     // are bodies colliding with each other
 
@@ -283,13 +280,13 @@ function controlPlanet1() {
     if (input["w"] === true) {
         planet1.ay -= propulsionStrength;
     }
-    else if (input["s"] === true) {
+    if (input["s"] === true) {
         planet1.ay += propulsionStrength;
     }
-    else if (input["a"] === true) {
+    if (input["a"] === true) {
         planet1.ax -= propulsionStrength;
     }
-    else if (input["d"] === true) {
+    if (input["d"] === true) {
         planet1.ax += propulsionStrength;
     }
     else {
@@ -303,13 +300,13 @@ function controlPlanet2() {
     if (input["ArrowUp"] === true) {
         planet2.ay -= propulsionStrength;
     }
-    else if (input["ArrowDown"] === true) {
+    if (input["ArrowDown"] === true) {
         planet2.ay += propulsionStrength;
     }
-    else if (input["ArrowLeft"] === true) {
+    if (input["ArrowLeft"] === true) {
         planet2.ax -= propulsionStrength;
     }
-    else if (input["ArrowRight"] === true) {
+    if (input["ArrowRight"] === true) {
         planet2.ax += propulsionStrength;
     }
     else {
@@ -406,7 +403,14 @@ function drawInstructionsScreen() {
 }
 
 function drawGame() {
-    
+
+    // Draw centre line
+    ctx.strokeStyle = "grey";
+    ctx.beginPath();
+    ctx.moveTo(centreLine.startx, centreLine.starty);
+    ctx.lineTo(centreLine.endx, centreLine.endy);
+    ctx.stroke();
+
     // Draw moon
     ctx.fillStyle = "white";
     ctx.beginPath();
@@ -424,8 +428,6 @@ function drawGame() {
     ctx.beginPath();
     ctx.arc(planet2.x, planet2.y, planet2.radius, 0, Math.PI * 2);
     ctx.fill();
-
-    // Draw centre line
 
     // Draw sprites (later)
 }
