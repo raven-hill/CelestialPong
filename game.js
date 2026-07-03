@@ -426,9 +426,6 @@ function drawGame() {
     ctx.fill();
 
     // Draw centre line
-    ctx.fillstyle = "grey";
-    ctx.beginPath();
-    ctx.
 
     // Draw sprites (later)
 }
