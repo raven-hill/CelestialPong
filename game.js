@@ -23,7 +23,7 @@ const startButton = {
     height: 60,
     text: "Start Game",
     action: startGame
-};
+}
 
 const elasticButton = {
     x: 300,
@@ -32,7 +32,7 @@ const elasticButton = {
     height: 60,
     text: "Elastic Mode",
     action: startElasticGame
-};
+}
 
 const voidButton = {
     x: 700,
@@ -41,7 +41,7 @@ const voidButton = {
     height: 60,
     text: "Void Mode",
     action: startVoidGame
-};
+}
 
 const restartButton = {
     x: 500,
@@ -50,7 +50,7 @@ const restartButton = {
     height: 60,
     text: "Restart Game",
     action: restartGame
-};
+}
 
 const selectionOptions = {
     title: [startButton],
@@ -73,7 +73,7 @@ const moon = {
 
     mass: 5,
     radius: 10
-};
+}
 
 const planet1 = {
     x: 150,
@@ -87,7 +87,7 @@ const planet1 = {
 
     mass: 100,
     radius: 20
-};
+}
 
 const planet2 = {
     x: 1050,
@@ -101,9 +101,94 @@ const planet2 = {
 
     mass: 100,
     radius: 20
-};
+}
 
 const bodies = [moon, planet1, planet2];
+
+//----------------------------------------------------------------------------------
+
+// Defining game boarders
+const leftEdge = {
+
+    startx: 0,
+    endx: 0,
+
+    starty: 0,
+    endy: canvas.height
+
+}
+
+const rightEdge = {
+
+    startx: canvas.width,
+    endx: canvas.width,
+
+    starty: 0,
+    endy: canvas.height
+    
+}
+
+const centreLine = {
+    
+    startx: canvas.width / 2,
+    endx: canvas.width / 2,
+
+    starty: 0,
+    endy: canvas.height
+
+}
+
+const topLeftEdge = {
+
+    startx: 0,
+    endx: canvas.width / 2,
+
+    starty: 0,
+    endy: 0
+    
+}
+
+const topRightEdge = {
+
+    startx: canvas.width / 2,
+    endx: canvas.width,
+
+    starty: 0,
+    endy: 0
+    
+}
+
+const bottomLeftEdge = {
+
+    startx: 0,
+    endx: canvas.width / 2,
+
+    starty: canvas.height,
+    endy: canvas.height
+    
+}
+
+const bottomRightEdge = {
+
+    startx: canvas.width / 2,
+    endx: canvas.width,
+
+    starty: canvas.height,
+    endy: canvas.height
+    
+}
+
+const boarders = [leftEdge, rightEdge, centreLine, topLeftEdge, topRightEdge, bottomLeftEdge, bottomRightEdge];
+
+//----------------------------------------------------------------------------------
+
+// Initial settings
+let gameState = "title";
+let gameMode = "";
+let selection = 0;
+const input = {};
+const G = 0.1; // Gravity constant - adjust as needed!
+const propulsionStrength = 0.1; // Adjust as needed
 
 //----------------------------------------------------------------------------------
 
@@ -146,13 +231,18 @@ function restartGame() {
 }
 
 // Physics functions
-function gravityAccn(body1, body2) {
-
-    const G = 0.1; // Gravity constant - adjust as needed!
+function findDistance(body1,body2) {
 
     const dx = body2.x - body1.x;
     const dy = body2.y - body1.y;
     const distance = Math.sqrt(dx*dx + dy*dy);
+
+    return dx, dy, distance;
+}
+
+function gravityAccn(body1, body2) {
+
+    dx,dy,distance = findDistance(body1,body2);
 
     if (distance < 1) {
         return; // Avoid division by zero
@@ -170,6 +260,16 @@ function gravityAccn(body1, body2) {
 
 }
 
+function isColliding() {
+
+    dx,dy,distance = findDistance(body1,body2);
+
+    // are bodies colliding with each other
+
+    // are bodies colliding with game boarders
+
+}
+
 // Moving celestial bodies
 function applyGravity() {
 
@@ -179,20 +279,62 @@ function applyGravity() {
 }
 
 function controlPlanet1() {
-    // Control planet1 with WASD keys
+
+    if (input["w"] === true) {
+        planet1.ay -= propulsionStrength;
+    }
+    else if (input["s"] === true) {
+        planet1.ay += propulsionStrength;
+    }
+    else if (input["a"] === true) {
+        planet1.ax -= propulsionStrength;
+    }
+    else if (input["d"] === true) {
+        planet1.ax += propulsionStrength;
+    }
+    else {
+        return; // Ignore other keys
+    } 
+
 }
 
 function controlPlanet2() {
-    // Control planet2 with arrow keys
+
+    if (input["ArrowUp"] === true) {
+        planet2.ay -= propulsionStrength;
+    }
+    else if (input["ArrowDown"] === true) {
+        planet2.ay += propulsionStrength;
+    }
+    else if (input["ArrowLeft"] === true) {
+        planet2.ax -= propulsionStrength;
+    }
+    else if (input["ArrowRight"] === true) {
+        planet2.ax += propulsionStrength;
+    }
+    else {
+        return; // Ignore other keys
+    }
+
 }
 
 function moveBodies() {
-    // Update velocities based on acceleration
-    // Update positions based on velocities
+    
+    for (let body of bodies) {
+
+        body.vx += body.ax;
+        body.vy += body.ay;
+
+        body.x += body.vx;
+        body.y += body.vy;
+    
+    }
+
 }
 
 function checkCollisions() {
-    // Check for collisions between celestial bodies and boundaries
+    
+
 }
 
 // Simulation order:
@@ -245,25 +387,49 @@ function drawButton(button) {
 }
 
 function drawTitleScreen() {
+
     ctx.fillStyle = "white";
     ctx.font = "40px Arial";
     ctx.fillText("Celestial Pong", canvas.width / 2, 200);
     drawButton(startButton);
+
 }
 
 function drawInstructionsScreen() {
-    // Draw instructions
+    
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.fillText("Instructions", canvas.width / 2, 200);    
+    
     drawButton(elasticButton);
     drawButton(voidButton);
 }
 
 function drawGame() {
+    
+    // Draw moon
     ctx.fillStyle = "white";
     ctx.beginPath();
     ctx.arc(moon.x, moon.y, moon.radius, 0, Math.PI * 2);
     ctx.fill();
-    // Draw planets
-    // Draw moon
+
+    // Draw planet 1
+    ctx.fillStyle = "blue";
+    ctx.beginPath();
+    ctx.arc(planet1.x, planet1.y, planet1.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw planet 2
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(planet2.x, planet2.y, planet2.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw centre line
+    ctx.fillstyle = "grey";
+    ctx.beginPath();
+    ctx.
+
     // Draw sprites (later)
 }
 
@@ -295,20 +461,23 @@ function draw() {
 function gameLoop() {
 
     if (gameState === "playing") {
+
+        document.addEventListener("keydown", function(event) {
+            input[event.key] = true;
+        });
+
+        document.addEventListener("keyup", function(event) {
+            input[event.key] = false;
+        });
+
         update();
+
     }
 
     draw();
 
     requestAnimationFrame(gameLoop);
 }
-
-//----------------------------------------------------------------------------------
-
-// Initial settings
-let gameState = "title";
-let gameMode = "";
-let selection = 0;
 
 //----------------------------------------------------------------------------------
 
@@ -365,18 +534,19 @@ document.addEventListener("keydown", function(event) {;
 //----------------------------------------------------------------------------------
 
 // Starting to run the game
+document.addEventListener("keydown", function(event) {
+    input[event.key] = true;
+});
+
+document.addEventListener("keyup", function(event) {
+    input[event.key] = false;
+});
+
 gameLoop()
 
 //----------------------------------------------------------------------------------
 
 // TO DO:
 //
-// finish work on menu buttons!!!
-//
-//
-// Implement moveBodies()
-// Implement keyboard controls
 // Implement collision detection
-// Draw planets
-// Draw menu buttons
 // Replace circles with sprites
