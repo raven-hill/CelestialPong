@@ -17,178 +17,125 @@ const ctx = canvas.getContext("2d");
 
 // Defining buttons
 const startButton = {
+
     x: 500,
     y: 300,
     width: 200,
     height: 60,
     text: "Start Game",
     action: startGame
+
 }
 
 const elasticButton = {
+
     x: 300,
     y: 500,
     width: 200,
     height: 60,
     text: "Elastic Mode",
     action: startElasticGame
+
 }
 
 const voidButton = {
+
     x: 700,
     y: 500,
     width: 200,
     height: 60,
     text: "Void Mode",
     action: startVoidGame
+
 }
 
 const restartButton = {
+
     x: 500,
     y: 300,
     width: 200,
     height: 60,
     text: "Restart Game",
     action: restartGame
+
 }
 
 const selectionOptions = {
+
     title: [startButton],
     instructions: [elasticButton, voidButton],
     gameOver: [restartButton]
+
 }
 
 //----------------------------------------------------------------------------------
 
 // Defining celestial bodies
-const moon = {
-    x: 600,
-    y: 300,
 
-    vx: 0,
-    vy: 0,
+function resetBodies() {
 
-    ax: 0,
-    ay: 0,
+    const moon = {
+        x: 600,
+        y: 300,
 
-    mass: 5,
-    radius: 10
+        vx: 0,
+        vy: 0,
+
+        ax: 0,
+        ay: 0,
+
+        mass: 5,
+        radius: 10
+    }
+
+    const planet1 = {
+        x: 150,
+        y: 300,
+
+        vx: 0,
+        vy: 0,
+
+        ax: 0,
+        ay: 0,
+
+        mass: 100,
+        radius: 20
+    }
+
+    const planet2 = {
+        x: 1050,
+        y: 300,
+
+        vx: 0,
+        vy: 0,
+
+        ax: 0,
+        ay: 0,
+
+        mass: 100,
+        radius: 20
+    }
+
+    return { moon, planet1, planet2 };
 }
 
-const planet1 = {
-    x: 150,
-    y: 300,
-
-    vx: 0,
-    vy: 0,
-
-    ax: 0,
-    ay: 0,
-
-    mass: 100,
-    radius: 20
-}
-
-const planet2 = {
-    x: 1050,
-    y: 300,
-
-    vx: 0,
-    vy: 0,
-
-    ax: 0,
-    ay: 0,
-
-    mass: 100,
-    radius: 20
-}
+const { moon, planet1, planet2 } = resetBodies();
 
 const bodies = [moon, planet1, planet2];
-
-//----------------------------------------------------------------------------------
-
-// Defining game boarders
-const leftEdge = {
-
-    startx: 0,
-    endx: 0,
-
-    starty: 0,
-    endy: canvas.height
-
-}
-
-const rightEdge = {
-
-    startx: canvas.width,
-    endx: canvas.width,
-
-    starty: 0,
-    endy: canvas.height
-    
-}
-
-const centreLine = {
-    
-    startx: canvas.width / 2,
-    endx: canvas.width / 2,
-
-    starty: 0,
-    endy: canvas.height
-
-}
-
-const topLeftEdge = {
-
-    startx: 0,
-    endx: canvas.width / 2,
-
-    starty: 0,
-    endy: 0
-    
-}
-
-const topRightEdge = {
-
-    startx: canvas.width / 2,
-    endx: canvas.width,
-
-    starty: 0,
-    endy: 0
-    
-}
-
-const bottomLeftEdge = {
-
-    startx: 0,
-    endx: canvas.width / 2,
-
-    starty: canvas.height,
-    endy: canvas.height
-    
-}
-
-const bottomRightEdge = {
-
-    startx: canvas.width / 2,
-    endx: canvas.width,
-
-    starty: canvas.height,
-    endy: canvas.height
-    
-}
-
-const boarders = [leftEdge, rightEdge, centreLine, topLeftEdge, topRightEdge, bottomLeftEdge, bottomRightEdge];
 
 //----------------------------------------------------------------------------------
 
 // Initial settings
 let gameState = "title";
 let gameMode = "";
-let selection = 0;
+let selection = 0; // Reset selection to first option
+let isEndGame = false;
+let winner = "";
 const input = {};
-const G = 0.1; // Gravity constant - adjust as needed!
-const propulsionStrength = 0.1; // Adjust as needed
+const G = 0.2; // Gravity constant - adjust as needed!
+const propulsionStrength = 0.01; // Adjust as needed
+ctx.textAlign = "center";
+ctx.textBaseline = "middle"; //aligning text to the centre of the button
 
 //----------------------------------------------------------------------------------
 
@@ -196,8 +143,10 @@ const propulsionStrength = 0.1; // Adjust as needed
 
 // Button functions
 function startGame() {
+
     gameState = "instructions";
     selection = 0; // Reset selection to first option
+
 }
 
 function startElasticGame() {
@@ -226,7 +175,11 @@ function gameOver() {
 function restartGame() {
 
     gameState = "title";
+    gameMode = "";
     selection = 0; // Reset selection to first option
+    isEndGame = false;
+    winner = "";
+    const { moon, planet1, planet2 } = resetBodies(); // Reset celestial bodies
 
 }
 
@@ -253,17 +206,113 @@ function gravityAccn(body1, body2) {
 
 }
 
-function isColliding() {
+// Collision detection functions
+function isMoonBoarderColliding() {
 
-    // Body-body collisions
-    const dx = body2.x - body1.x;
-    const dy = body2.y - body1.y;
-    const distance = Math.sqrt(dx*dx + dy*dy);
+    // Collision with left wall
+    if (moon.x - moon.radius <= 0) {
+        winner = "Player 2";
+        gameOver();
+        return
+    }
 
+    // Collision with right wall
+    if (moon.x + moon.radius >= canvas.width) {
+        winner = "Player 1";
+        gameOver();
+        return
+    }
 
-    // are bodies colliding with each other
+    // Collision with top or bottom walls
+    if (gameMode === "elastic") {   
 
-    // are bodies colliding with game boarders
+        if (moon.y - moon.radius <= 0 || moon.y + moon.radius >= canvas.height) {
+            moon.vy *= -1; // Reverse vertical velocity
+            return;
+        }
+    }
+
+    if (gameMode === "void") {
+
+        if (moon.y - moon.radius <= 0 || moon.y + moon.radius >= canvas.height) {
+            if (moon.x < canvas.width / 2) {
+                winner = "Player 2";
+                gameOver();
+                return;
+            }
+            else {
+                winner = "Player 1";
+                gameOver();
+                return;
+            }
+        }
+    }
+
+    else {
+        return; // No collision detected
+    }
+}
+
+function isMoonPlanetColliding() {
+
+    // Check for collision between moon and planet1
+    const dx1 = moon.x - planet1.x;
+    const dy1 = moon.y - planet1.y;
+    const distance1 = Math.sqrt(dx1*dx1 + dy1*dy1);
+
+    if (distance1 <= moon.radius + planet1.radius) {
+        winner = "Player 2";
+        gameOver();
+        return;
+    }
+
+    // Check for collision between moon and planet2
+    const dx2 = moon.x - planet2.x;
+    const dy2 = moon.y - planet2.y;
+    const distance2 = Math.sqrt(dx2*dx2 + dy2*dy2);
+
+    if (distance2 <= moon.radius + planet2.radius) {
+        winner = "Player 1";
+        gameOver();
+        return;
+    }
+}
+
+function isPlanetBoarderColliding(planet) {
+
+    // Collision with left wall
+    if (planet.x - planet.radius <= 0) {
+        planet.x = planet.radius + 1; // Prevent going out of bounds
+        planet.vx = 0; // Stop horizontal movement
+    }
+
+    // Collision with right wall
+    if (planet.x + planet.radius >= canvas.width) {
+        planet.x = canvas.width - planet.radius - 1; // Prevent going out of bounds
+        planet.vx = 0; // Stop horizontal movement
+    }
+
+    // Collision with top wall
+    if (planet.y - planet.radius <= 0) {
+        planet.y = planet.radius + 1; // Prevent going out of bounds
+        planet.vy = 0; // Stop vertical movement
+    }
+
+    // Collision with bottom wall
+    if (planet.y + planet.radius >= canvas.height) {
+        planet.y = canvas.height - planet.radius - 1; // Prevent going out of bounds
+        planet.vy = 0; // Stop vertical movement
+    }
+
+    // Collision with centre line
+    if (planet === planet1 && planet.x + planet.radius >= canvas.width / 2) {
+        planet.x = canvas.width / 2 - planet.radius - 1;
+        planet.vx = 0; // Stop horizontal movement
+    }
+    else if (planet === planet2 && planet.x - planet.radius <= canvas.width / 2) {
+        planet.x = canvas.width / 2 + planet.radius + 1;
+        planet.vx = 0; // Stop horizontal movement
+    }
 
 }
 
@@ -330,7 +379,14 @@ function moveBodies() {
 }
 
 function checkCollisions() {
+
+    isMoonBoarderColliding();
+
+    isMoonPlanetColliding();
+
+    isPlanetBoarderColliding(planet1);
     
+    isPlanetBoarderColliding(planet2);
 
 }
 
@@ -364,9 +420,6 @@ function update() {
 }  
 
 // Drawing functions
-ctx.textAlign = "center";
-ctx.textBaseline = "middle"; //aligning text to the centre of the button
-
 function drawButton(button) {
 
     const selectedButton = selectionOptions[gameState][selection];
@@ -433,11 +486,14 @@ function drawGame() {
 }
 
 function drawGameOver() {
+
     // Draw game over
     drawButton(restartButton);
+
 }
 
 function draw() {
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -454,6 +510,7 @@ function draw() {
     else if (gameState === "gameOver") {
         drawGameOver();
     }
+    
 }
 
 // Main game loop
@@ -478,9 +535,7 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-//----------------------------------------------------------------------------------
-
-// Making buttons work
+// Handling selection changes and option selection
 function changeSelection(event) {
 
     if (gameState === "playing") {
@@ -523,16 +578,17 @@ function selectOption(event) {
 
 }
 
-document.addEventListener("keydown", function(event) {;
-
-    changeSelection(event);
-    selectOption(event);
-
-});
-
 //----------------------------------------------------------------------------------
 
-// Starting to run the game
+// Handling keydown events
+
+// Option selection and navigation
+document.addEventListener("keydown", function(event) {;
+    changeSelection(event);
+    selectOption(event);
+});
+
+// Handling player input for controlling planets
 document.addEventListener("keydown", function(event) {
     input[event.key] = true;
 });
@@ -541,6 +597,10 @@ document.addEventListener("keyup", function(event) {
     input[event.key] = false;
 });
 
+//----------------------------------------------------------------------------------
+
+// Starting to run the game
+restartGame()
 gameLoop()
 
 //----------------------------------------------------------------------------------
