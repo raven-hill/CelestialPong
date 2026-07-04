@@ -460,8 +460,8 @@ function drawGame() {
     // Draw centre line
     ctx.strokeStyle = "grey";
     ctx.beginPath();
-    ctx.moveTo(centreLine.startx, centreLine.starty);
-    ctx.lineTo(centreLine.endx, centreLine.endy);
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
 
     // Draw moon
@@ -510,7 +510,7 @@ function draw() {
     else if (gameState === "gameOver") {
         drawGameOver();
     }
-    
+
 }
 
 // Main game loop
