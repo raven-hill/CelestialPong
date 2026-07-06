@@ -85,7 +85,7 @@ function resetBodies() {
         ay: 0,
 
         mass: 5,
-        radius: 10
+        radius: 3
     }
 
     const planet1 = {
@@ -99,7 +99,7 @@ function resetBodies() {
         ay: 0,
 
         mass: 100,
-        radius: 20
+        radius: 5
     }
 
     const planet2 = {
@@ -113,7 +113,7 @@ function resetBodies() {
         ay: 0,
 
         mass: 100,
-        radius: 20
+        radius: 5
     }
 
     return { moon, planet1, planet2 };
@@ -132,8 +132,9 @@ let selection = 0; // Reset selection to first option
 let isEndGame = false;
 let winner = "";
 const input = {};
-const G = 0.2; // Gravity constant - adjust as needed!
-const propulsionStrength = 0.01; // Adjust as needed
+const G = 2.0; // Gravity constant - adjust as needed!
+const propulsionStrength = 0.5; // Adjust as needed
+const velocityLimit = 3; // Adjust as needed
 ctx.textAlign = "center";
 ctx.textBaseline = "middle"; //aligning text to the centre of the button
 
@@ -214,25 +215,14 @@ function gravityAccn(body1, body2) {
 // Collision detection functions
 function isMoonBoarderColliding() {
 
-    // Collision with left wall
-    if (moon.x - moon.radius <= 0) {
-        winner = "Player 2";
-        gameOver();
-        return
-    }
-
-    // Collision with right wall
-    if (moon.x + moon.radius >= canvas.width) {
-        winner = "Player 1";
-        gameOver();
-        return
-    }
-
-    // Collision with top or bottom walls
     if (gameMode === "elastic") {   
 
         if (moon.y - moon.radius <= 0 || moon.y + moon.radius >= canvas.height) {
             moon.vy *= -1; // Reverse vertical velocity
+            return;
+        }
+        if (moon.x - moon.radius <= 0 || moon.x + moon.radius >= canvas.width) {
+            moon.vx *= -1; // Reverse horizontal velocity
             return;
         }
     }
@@ -240,16 +230,26 @@ function isMoonBoarderColliding() {
     if (gameMode === "void") {
 
         if (moon.y - moon.radius <= 0 || moon.y + moon.radius >= canvas.height) {
-            if (moon.x < canvas.width / 2) {
+            if (moon.x < canvas.width / 2) {  // Collision with top or bottom wall on left side
                 winner = "Player 2";
                 gameOver();
                 return;
             }
-            else {
+            else {  // Collision with top or bottom wall on right side
                 winner = "Player 1";
                 gameOver();
                 return;
             }
+        }
+        if (moon.x - moon.radius <= 0) {  // Collision with left wall
+            winner = "Player 2";
+            gameOver();
+            return;
+        }
+        if (moon.x + moon.radius >= canvas.width) {  // Collision with right wall
+            winner = "Player 1";
+            gameOver();
+            return;
         }
     }
 
@@ -373,8 +373,12 @@ function moveBodies() {
     
     for (let body of bodies) {
 
-        body.vx += body.ax;
-        body.vy += body.ay;
+        if (body.vx < velocityLimit || body.vx > -velocityLimit) {
+            body.vx += body.ax;
+        }
+        if (body.vy < velocityLimit || body.vy > -velocityLimit) {
+            body.vy += body.ay;
+        }
 
         body.x += body.vx;
         body.y += body.vy;
