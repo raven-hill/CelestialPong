@@ -179,7 +179,12 @@ function restartGame() {
     selection = 0; // Reset selection to first option
     isEndGame = false;
     winner = "";
-    const { moon, planet1, planet2 } = resetBodies(); // Reset celestial bodies
+    
+    const reset = resetBodies();
+
+    Object.assign(moon, reset.moon);
+    Object.assign(planet1, reset.planet1);
+    Object.assign(planet2, reset.planet2);
 
 }
 
@@ -483,6 +488,8 @@ function drawGame() {
     ctx.fill();
 
     // Draw sprites (later)
+
+    
 }
 
 function drawGameOver() {
@@ -511,20 +518,27 @@ function draw() {
         drawGameOver();
     }
 
+    // Debugging help
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+    ctx.fillText(
+        gameMode,
+        80,
+        20
+    );
+
+    ctx.fillText(
+        winner,
+        80,
+        40
+    );
+
 }
 
 // Main game loop
 function gameLoop() {
 
     if (gameState === "playing") {
-
-        document.addEventListener("keydown", function(event) {
-            input[event.key] = true;
-        });
-
-        document.addEventListener("keyup", function(event) {
-            input[event.key] = false;
-        });
 
         update();
 
@@ -554,9 +568,6 @@ function changeSelection(event) {
                 selection = selectionOptions[gameState].length - 1; // Wrap around to the last option
             }
         } 
-        else {
-            return; // Ignore other keys
-        }
     }
 }
 
@@ -571,9 +582,6 @@ function selectOption(event) {
             const selectedButton = selectionOptions[gameState][selection];
             selectedButton.action(); // Call the action associated with the selected button
         }
-    }
-    else {
-        return; // Ignore other keys
     }
 
 }
