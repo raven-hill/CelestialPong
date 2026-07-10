@@ -85,7 +85,12 @@ function resetBodies() {
         ay: 0,
 
         mass: 5,
-        radius: 3
+        radius: 3,
+
+        colour: "255,255,255", // white, still needs opcity though!
+        trailx: [600],
+        traily: [300],
+        trailLength: 60
     }
 
     const planet1 = {
@@ -99,7 +104,12 @@ function resetBodies() {
         ay: 0,
 
         mass: 100,
-        radius: 5
+        radius: 5,
+
+        colour: "0,0,255", // blue, still needs opacity though!
+        trailx: [150],
+        traily: [300],
+        trailLength: 30
     }
 
     const planet2 = {
@@ -113,7 +123,12 @@ function resetBodies() {
         ay: 0,
 
         mass: 100,
-        radius: 5
+        radius: 5,
+
+        colour: "255,0,0",  // red, still needs opacity though!
+        trailx: [1050],
+        traily: [300],
+        trailLength: 30
     }
 
     return { moon, planet1, planet2 };
@@ -131,9 +146,10 @@ let gameMode = "";
 let selection = 0; // Reset selection to first option
 let isEndGame = false;
 let winner = "";
+const trailTransparency = "0.4";
 const input = {};
 const G = 2.0; // Gravity constant - adjust as needed!
-const propulsionStrength = 0.5; // Adjust as needed
+const propulsionStrength = 0.3; // Adjust as needed
 const velocityLimit = 3; // Adjust as needed
 ctx.textAlign = "center";
 ctx.textBaseline = "middle"; //aligning text to the centre of the button
@@ -326,6 +342,7 @@ function applyGravity() {
 
     gravityAccn(moon, planet1);
     gravityAccn(moon, planet2);
+    //gravityAccn(planet1, planet2); // Optional (remove if it makes gameplay too hard)
 
 }
 
@@ -399,6 +416,18 @@ function checkCollisions() {
 
 }
 
+function createTrail(body) {
+
+    body.trailx.push(body.x);
+    body.traily.push(body.y);
+
+    if (body.trailx.length > body.trailLength) {
+        body.trailx.shift();
+        body.traily.shift();
+    }
+
+}
+
 // Simulation order:
 //
 // 1. Reset accelerations
@@ -426,6 +455,10 @@ function update() {
 
     checkCollisions();
 
+    for (let body of bodies) {
+        createTrail(body)
+    }
+
 }  
 
 // Drawing functions
@@ -443,6 +476,7 @@ function drawButton(button) {
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
     ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+
 }
 
 function drawTitleScreen() {
@@ -464,6 +498,19 @@ function drawInstructionsScreen() {
     drawButton(voidButton);
 }
 
+function drawTrail(body) {
+
+    for (i = body.trailx.length - 1; i>= 0; i -= 1) {
+        let particleRadius = body.radius * ((i + 1)/(body.trailx.length));
+        ctx.fillStyle = `rgba(${body.colour}, ${trailTransparency})`;
+        ctx.beginPath();
+        ctx.arc(body.trailx[i], body.traily[i], particleRadius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+}
+
+
 function drawGame() {
 
     // Draw centre line
@@ -473,23 +520,14 @@ function drawGame() {
     ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
 
-    // Draw moon
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(moon.x, moon.y, moon.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw planet 1
-    ctx.fillStyle = "blue";
-    ctx.beginPath();
-    ctx.arc(planet1.x, planet1.y, planet1.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw planet 2
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(planet2.x, planet2.y, planet2.radius, 0, Math.PI * 2);
-    ctx.fill();
+    // Draw bodies
+    for (let body of bodies) {
+        drawTrail(body)
+        ctx.fillStyle = `rgba(${body.colour},1)`;
+        ctx.beginPath();
+        ctx.arc(Math.round(body.x), Math.round(body.y), body.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
     // Draw sprites (later)
 
